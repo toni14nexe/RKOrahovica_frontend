@@ -1,0 +1,66 @@
+:root {
+  /* Variables */
+  --background-color: #242424;
+  --spacing-1: 15px;
+  /* ---------- */
+
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: var(--background-color);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem 1rem 0 1rem;
+  text-align: center;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+}
+
+a {
+  color: white;
+}
+
+.footer {
+  height: 50px;
+  color: var(--el-text-color-secondary);
+  margin-top: calc(2 * var(--spacing-1));
+}
+
+/* Helpers */
+
+.mt-1 {
+  margin-top: var(--spacing-1);
+}
+
+/* Element plus */
+
+.el-table {
+  --el-table-border-color: white !important;
+  --el-bg-color: var(--background-color);
+  --el-table-text-color: white !important;
+  --el-table-row-hover-bg-color: var(--background-color) !important;
+}

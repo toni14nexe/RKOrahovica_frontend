@@ -1,19 +1,29 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useDebtStore } from '../stores/debts'
 import cookie from 'vue-cookies';
+import Login from './Login.vue'
+import { storeToRefs } from 'pinia';
 
 const store = useDebtStore()
+const { isLogged, debtsLoading } = storeToRefs(store)
 const url = "https://media.beliefnet.com/~/media/photos-with-attribution/faith/faith-christian-bible-arms-sky-clouds_credit-shutterstock.jpg"
 const createDialogOpened = ref(false)
 const setOrDeleteDialogOpened = ref(false)
 const deleteOrSet = ref()
 const name = ref('')
 const description = ref('')
-const token = ref(cookie.get('authorization'))
 const selectedDebt = ref()
+const showDashboard = ref(true)
 
 onMounted( () => store.getDebts())
+
+watch(
+  () => isLogged.value,
+  (value) => {
+    if(value) showDashboard.value = true
+  }
+)
 
 function createDebt() {
   if (!btnDisabled.value) {
@@ -45,7 +55,7 @@ const btnDisabled = computed(() => {
 
 function logout() {
   cookie.remove('authorization')
-  token.value = undefined
+  isLogged.value = false;
   location.reload()
 }
 
@@ -68,68 +78,79 @@ function openSetDeleteDialog(debt, option) {
 </script>
 
 <template>
-    <el-image class="image" :src="url" />
-    <div v-if="token">
-      <el-button
-        class="btn-margin-fix"
-        type="primary"
-        plain
-        @click="createDialogOpened = true"
-        >Novo dugovanje
-      </el-button>
-      <el-button
-        class="btn-margin-fix"
-        type="danger"
-        plain
-        @click="logout"
-        >Odjavi se
-      </el-button>
+    <div v-if="showDashboard">
+      <div>
+        <el-image class="image" :src="url" />
+        <div v-if="isLogged">
+          <el-button
+            class="btn-margin-fix"
+            type="primary"
+            plain
+            @click="createDialogOpened = true"
+            >Novo dugovanje
+          </el-button>
+          <el-button
+            class="btn-margin-fix"
+            type="danger"
+            plain
+            @click="logout"
+            >Odjavi se
+          </el-button>
+        </div>
+        <el-table
+          class="mt-1"
+          :data="store?.debts?.debts" border
+          :default-sort="{ prop: 'date', order: 'ascending' }"
+          v-loading="debtsLoading"
+        >
+          <el-table-column prop="name" label="Dužnik" sortable="" />
+          <el-table-column prop="description" label="Opis" />
+          <el-table-column prop="date" label="Datum" :width="110" align="center" sortable="" />
+          <el-table-column prop="done" label="Status" :width="93" align="center" sortable="">
+            <template #default="data">
+              <el-icon :size="20">
+                <SuccessFilled color="green" v-if="data?.row?.done" />
+                <CircleCloseFilled color="red" v-else />
+              </el-icon>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="isLogged" prop="date" label="Opcije" :width="70" align="center">
+            <template #default="data">
+              <el-row>
+                <el-col :span="8">
+                  <el-tooltip
+                    v-if="!data.row.done"
+                    content="Označi kao razduženo"
+                    placement="top-start"
+                  >
+                    <el-icon class="hover-patch" :size="20" @click="openSetDeleteDialog(data.row, 'set')">
+                      <SuccessFilled />
+                    </el-icon>
+                  </el-tooltip>
+                  <div v-else />
+                </el-col>
+                <el-col :span="8" :offset="8">
+                  <el-tooltip
+                    content="Obriši dugovanje"
+                    placement="top-start"
+                  >
+                    <el-icon class="hover-delete" :size="20" @click="openSetDeleteDialog(data.row, 'delete')">
+                      <DeleteFilled />
+                    </el-icon>
+                  </el-tooltip>
+                </el-col>
+              </el-row>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
     </div>
-    <el-table
-      class="mt-1"
-      :data="store?.debts?.debts" border
-      :default-sort="{ prop: 'date', order: 'descending' }"
-    >
-      <el-table-column prop="name" label="Dužnik" sortable="" />
-      <el-table-column prop="description" label="Opis" />
-      <el-table-column prop="date" label="Datum" :width="110" align="center" sortable="" />
-      <el-table-column prop="done" label="Status" :width="93" align="center" sortable="">
-        <template #default="data">
-          <el-icon :size="20">
-            <SuccessFilled color="green" v-if="data?.row?.done" />
-            <CircleCloseFilled color="red" v-else />
-          </el-icon>
-        </template>
-      </el-table-column>
-      <el-table-column v-if="token" prop="date" label="Opcije" :width="70" align="center">
-        <template #default="data">
-          <el-row>
-            <el-col :span="8">
-              <el-tooltip
-                v-if="!data.row.done"
-                content="Označi kao razduženo"
-                placement="top-start"
-              >
-                <el-icon class="hover-patch" :size="20" @click="openSetDeleteDialog(data.row, 'set')">
-                  <SuccessFilled />
-                </el-icon>
-              </el-tooltip>
-              <div v-else />
-            </el-col>
-            <el-col :span="8" :offset="8">
-              <el-tooltip
-                content="Obriši dugovanje"
-                placement="top-start"
-              >
-                <el-icon class="hover-delete" :size="20" @click="openSetDeleteDialog(data.row, 'delete')">
-                  <DeleteFilled />
-                </el-icon>
-              </el-tooltip>
-            </el-col>
-          </el-row>
-        </template>
-      </el-table-column>
-    </el-table>
+    <Login v-else />
+    <el-row class="mt-3" justify="center" align="middle">
+      <el-col v-if="!isLogged" @click="showDashboard = !showDashboard" class="link">
+        {{ `Go to ${showDashboard ? 'login' : 'dashboard'}` }}
+      </el-col>
+    </el-row>
 
     <el-dialog
       v-model="createDialogOpened"
@@ -218,5 +239,11 @@ function openSetDeleteDialog(debt, option) {
 
 .color-red {
   color: red;
+}
+
+.link:hover {
+  color: #ffffff;
+  cursor: pointer;
+  text-decoration: underline;
 }
 </style>

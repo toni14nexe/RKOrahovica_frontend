@@ -2,7 +2,6 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import axios from 'axios';
 import cookie from 'vue-cookies';
-import router from '../router';
 import { ElNotification } from 'element-plus';
 
 const apiLink = import.meta.env.VITE_API_LINK;
@@ -10,6 +9,7 @@ const apiLink = import.meta.env.VITE_API_LINK;
 export const useDebtStore = defineStore('debts', () => {
   const debts = ref([]);
   const debtsLoading = ref(true);
+  const isLogged = ref(false);
 
   function getDebts() {
     axios
@@ -17,6 +17,8 @@ export const useDebtStore = defineStore('debts', () => {
       .then((response) => {
         debts.value = response.data;
         debtsLoading.value = false;
+        if (cookie.get('authorization')) isLogged.value = true;
+        else isLogged.value = false;
       })
       .catch((error) => {
         console.error(error);
@@ -32,7 +34,7 @@ export const useDebtStore = defineStore('debts', () => {
       })
       .then((response) => {
         cookie.set('authorization', response.data.user.token, '1h');
-        router.push('/');
+        isLogged.value = true;
       })
       .catch((error) => {
         console.error(error);
@@ -113,5 +115,14 @@ export const useDebtStore = defineStore('debts', () => {
     });
   }
 
-  return { debts, getDebts, login, createNewDebt, setDebtAsDone, deleteDebt };
+  return {
+    debts,
+    debtsLoading,
+    isLogged,
+    getDebts,
+    login,
+    createNewDebt,
+    setDebtAsDone,
+    deleteDebt,
+  };
 });

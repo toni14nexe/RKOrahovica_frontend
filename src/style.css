@@ -47,13 +47,16 @@ a {
 .footer {
   height: 50px;
   color: var(--el-text-color-secondary);
-  margin-top: calc(2 * var(--spacing-1));
 }
 
 /* Helpers */
 
 .mt-1 {
   margin-top: var(--spacing-1);
+}
+
+.mt-3 {
+  margin-top: calc(3 * var(--spacing-1));
 }
 
 /* Element plus */
@@ -63,4 +66,5 @@ a {
   --el-bg-color: var(--background-color);
   --el-table-text-color: white !important;
   --el-table-row-hover-bg-color: var(--background-color) !important;
+  --el-mask-color: var(--background-color);
 }

@@ -14,6 +14,7 @@ const name = ref('');
 const description = ref('');
 const selectedDebt = ref();
 const activeNames = ref([]);
+const activeNames = ref([]);
 const pagination = ref({
   page: 1,
   perPage: 10,

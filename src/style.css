@@ -11,6 +11,12 @@
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: var(--background-color);
+  background-image: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)),
+    url('/holy-book.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -28,8 +34,8 @@ body {
 
 #app {
   max-width: 1280px;
+  width: 100vw;
   margin: 0 auto;
-  padding: 1rem 1rem 0 1rem;
   text-align: center;
 }
 
@@ -61,10 +67,98 @@ a {
 
 /* Element plus */
 
-.el-table {
-  --el-table-border-color: white !important;
-  --el-bg-color: var(--background-color);
-  --el-table-text-color: white !important;
-  --el-table-row-hover-bg-color: var(--background-color) !important;
-  --el-mask-color: var(--background-color);
+/* Collapse */
+
+.el-collapse {
+  --el-collapse-header-bg-color: rgba(0, 0, 0, 0) !important;
+  --el-border-color-lighter: rgba(255, 255, 255, 0.5);
+  --el-text-color-primary: white;
+  --el-collapse-content-bg-color: rgba(0, 0, 0, 0) !important;
+}
+
+/* Dialog */
+
+.el-dialog {
+  --el-bg-color: rgba(0, 0, 0, 0.8);
+}
+
+.el-dialog__title {
+  --el-text-color-primary: white;
+}
+
+.el-dialog__headerbtn {
+  svg {
+    color: white;
+  }
+}
+
+.el-dialog__body {
+  --el-text-color-regular: white;
+}
+
+/* Loading */
+
+.el-loading-mask {
+  --el-mask-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Pagination */
+
+.el-pager {
+  li {
+    background-color: rgba(0, 0, 0, 0) !important;
+    .number {
+      border-color: red !important;
+    }
+  }
+}
+
+li.number {
+  border: solid 1px var(--el-color-primary) !important;
+  color: var(--el-color-primary) !important;
+}
+
+li.number:hover,
+li.is-active.number,
+button.btn-next:hover,
+button.btn-prev:hover {
+  background-color: rgb(255, 255, 255) !important;
+}
+
+button.btn-next,
+button.btn-prev {
+  background-color: rgba(0, 0, 0, 0) !important;
+  border: solid 1px var(--el-color-primary) !important;
+  color: var(--el-color-primary) !important;
+}
+
+button.btn-next:disabled,
+button.btn-prev:disabled {
+  background-color: rgba(0, 0, 0, 0) !important;
+}
+
+.el-select {
+  --el-select-border-color-hover: var(--el-color-primary) !important;
+}
+
+.el-input__wrapper {
+  background-color: rgba(0, 0, 0, 0) !important;
+}
+
+.el-input__wrapper:hover {
+  background-color: white !important;
+}
+
+.el-input {
+  --el-input-border-color: var(--el-color-primary) !important;
+}
+
+.el-input__inner {
+  color: var(--el-color-primary) !important;
+}
+
+.el-input__suffix-inner {
+  i {
+    color: var(--el-color-primary) !important;
+  }
 }

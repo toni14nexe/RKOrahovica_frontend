@@ -12,6 +12,11 @@ const router = createRouter({
       component: Dashboard,
     },
     {
+      path: '/login',
+      name: 'login',
+      component: Login,
+    },
+    {
       path: '/:catchAll(.*)',
       name: 'NotFound',
       component: () => NotFound,

@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import axios from 'axios';
 import cookie from 'vue-cookies';
 import { ElNotification } from 'element-plus';
+import router from '../router/index';
 
 const apiLink = import.meta.env.VITE_API_LINK;
 
@@ -11,9 +12,9 @@ export const useDebtStore = defineStore('debts', () => {
   const debtsLoading = ref(true);
   const isLogged = ref(false);
 
-  function getDebts() {
+  function getDebts(page, perPage) {
     axios
-      .get(`${apiLink}/debts`)
+      .get(`${apiLink}/debts?page=${page}&perPage=${perPage}`)
       .then((response) => {
         debts.value = response.data;
         debtsLoading.value = false;
@@ -35,6 +36,7 @@ export const useDebtStore = defineStore('debts', () => {
       .then((response) => {
         cookie.set('authorization', response.data.user.token, '1h');
         isLogged.value = true;
+        router.push('/');
       })
       .catch((error) => {
         console.error(error);
@@ -53,7 +55,7 @@ export const useDebtStore = defineStore('debts', () => {
       })
       .then((response) => {
         getDebts();
-        successNotification('Dugovanje uspješno kreirano');
+        successNotification('Dugovanje je uspješno kreirano');
       })
       .catch((error) => {
         console.error(error);
@@ -72,7 +74,7 @@ export const useDebtStore = defineStore('debts', () => {
       })
       .then((response) => {
         getDebts();
-        successNotification('Dugovanje uspješno razduženo');
+        successNotification('Dugovanje je uspješno razduženo');
       })
       .catch((error) => {
         console.error(error);
@@ -91,7 +93,7 @@ export const useDebtStore = defineStore('debts', () => {
       })
       .then((response) => {
         getDebts();
-        successNotification('Dugovanje uspješno obrisano');
+        successNotification('Dugovanje je uspješno obrisano');
       })
       .catch((error) => {
         console.error(error);

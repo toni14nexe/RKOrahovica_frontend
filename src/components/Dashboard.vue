@@ -1,249 +1,289 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
-import { useDebtStore } from '../stores/debts'
+import { computed, onMounted, ref, watch } from 'vue';
+import { useDebtStore } from '../stores/debts';
 import cookie from 'vue-cookies';
-import Login from './Login.vue'
+import Layout from './Layout.vue';
 import { storeToRefs } from 'pinia';
 
-const store = useDebtStore()
-const { isLogged, debtsLoading } = storeToRefs(store)
-const url = "https://media.beliefnet.com/~/media/photos-with-attribution/faith/faith-christian-bible-arms-sky-clouds_credit-shutterstock.jpg"
-const createDialogOpened = ref(false)
-const setOrDeleteDialogOpened = ref(false)
-const deleteOrSet = ref()
-const name = ref('')
-const description = ref('')
-const selectedDebt = ref()
-const showDashboard = ref(true)
+const store = useDebtStore();
+const { isLogged, debtsLoading } = storeToRefs(store);
+const createDialogOpened = ref(false);
+const setOrDeleteDialogOpened = ref(false);
+const deleteOrSet = ref();
+const name = ref('');
+const description = ref('');
+const selectedDebt = ref();
+const pagination = ref({
+  page: 1,
+  perPage: 10,
+});
+const perPageSizes = [
+  { value: 10, label: '10 rezultata' },
+  { value: 25, label: '25 rezultata' },
+  { value: 50, label: '50 rezultata' },
+];
 
-onMounted( () => store.getDebts())
+onMounted(() => getDebts());
 
-watch(
-  () => isLogged.value,
-  (value) => {
-    if(value) showDashboard.value = true
-  }
-)
+function getDebts() {
+  store.getDebts(pagination.value.page, pagination.value.perPage);
+}
 
 function createDebt() {
   if (!btnDisabled.value) {
-    const date = new Date().toLocaleDateString('hrv-hr')
+    const date = new Date().toLocaleDateString('hrv-hr');
 
     store.createNewDebt({
       name: name.value,
       date: date,
-      description: description.value
-    })
+      description: description.value,
+    });
 
-    handleClose()
+    handleClose();
   }
 }
 
 function handleClose() {
-  name.value = ''
-  description.value = ''
+  name.value = '';
+  description.value = '';
   createDialogOpened.value = false;
   setOrDeleteDialogOpened.value = false;
-  deleteOrSet.value = undefined
+  deleteOrSet.value = undefined;
 }
 
 const btnDisabled = computed(() => {
-  if (name.value.length < 3 || description.value.length < 3)
-    return true
-  return false
-})
-
-function logout() {
-  cookie.remove('authorization')
-  isLogged.value = false;
-  location.reload()
-}
+  if (name.value.length < 3 || description.value.length < 3) return true;
+  return false;
+});
 
 function patchDebt() {
-  store.setDebtAsDone(selectedDebt.value._id)
-  handleClose()
+  store.setDebtAsDone(selectedDebt.value._id);
+  handleClose();
 }
 
 function deleteDebt() {
-  store.deleteDebt(selectedDebt.value._id)
-  handleClose()
+  store.deleteDebt(selectedDebt.value._id);
+  handleClose();
 }
 
 function openSetDeleteDialog(debt, option) {
-  selectedDebt.value = debt
-  if(option === 'set') deleteOrSet.value = 'set'
-  else deleteOrSet.value = 'delete'
-  setOrDeleteDialogOpened.value = true
+  selectedDebt.value = debt;
+  if (option === 'set') deleteOrSet.value = 'set';
+  else deleteOrSet.value = 'delete';
+  setOrDeleteDialogOpened.value = true;
+}
+
+function handlePageChange(page) {
+  pagination.value.page = page;
+  getDebts();
+}
+
+function handlePerPageChange(perPage) {
+  pagination.value = {
+    page: 1,
+    perPage: perPage,
+  };
+  getDebts();
 }
 </script>
 
 <template>
-    <div v-if="showDashboard">
-      <div>
-        <el-image class="image" :src="url" />
-        <div v-if="isLogged">
-          <el-button
-            class="btn-margin-fix"
-            type="primary"
-            plain
-            @click="createDialogOpened = true"
-            >Novo dugovanje
-          </el-button>
-          <el-button
-            class="btn-margin-fix"
-            type="danger"
-            plain
-            @click="logout"
-            >Odjavi se
-          </el-button>
-        </div>
-        <el-table
-          class="mt-1"
-          :data="store?.debts?.debts" border
-          :default-sort="{ prop: 'date', order: 'ascending' }"
-          v-loading="debtsLoading"
+  <Layout>
+    <h2>Dugovanja</h2>
+
+    <div
+      v-if="debtsLoading"
+      class="loading-container"
+      v-loading="debtsLoading"
+    />
+
+    <div v-else class="dashboard-container">
+      <ElButton
+        v-if="isLogged"
+        class="btn-margin-fix"
+        type="primary"
+        plain
+        @click="createDialogOpened = true"
+        ><ElIcon class="margin-right-8" :size="20">
+          <CirclePlusFilled />
+        </ElIcon>
+        Dugovanje
+      </ElButton>
+
+      <ElCollapse v-for="debt in store?.debts?.debts">
+        <ElCollapseItem>
+          <template #title>
+            <p class="margin-right-8">{{ debt.name }}</p>
+            <ElTag v-if="debt.done" type="success">Razduženo</ElTag>
+            <ElTag v-else type="danger">Dužan</ElTag>
+          </template>
+          <div>
+            <p>
+              {{ debt.date }}
+              <br />
+              {{ debt.description }}
+            </p>
+            <ElButton
+              v-if="isLogged"
+              plain
+              type="danger"
+              @click="openSetDeleteDialog(debt, 'delete')"
+            >
+              <ElIcon class="margin-right-8" :size="20">
+                <DeleteFilled />
+              </ElIcon>
+              Obriši
+            </ElButton>
+            <ElButton
+              v-if="isLogged"
+              plain
+              type="success"
+              @click="openSetDeleteDialog(debt, 'set')"
+            >
+              <ElIcon class="margin-right-8" :size="20">
+                <SuccessFilled />
+              </ElIcon>
+              Razduži
+            </ElButton>
+          </div>
+        </ElCollapseItem>
+      </ElCollapse>
+
+      <div v-if="store?.debts?.total > 10" class="pagination-container">
+        <ElSelect
+          v-model="pagination.perPage"
+          @change="handlePerPageChange"
+          style="width: 120px"
         >
-          <el-table-column prop="name" label="Dužnik" sortable="" />
-          <el-table-column prop="description" label="Opis" />
-          <el-table-column prop="date" label="Datum" :width="110" align="center" sortable="" />
-          <el-table-column prop="done" label="Status" :width="93" align="center" sortable="">
-            <template #default="data">
-              <el-icon :size="20">
-                <SuccessFilled color="green" v-if="data?.row?.done" />
-                <CircleCloseFilled color="red" v-else />
-              </el-icon>
-            </template>
-          </el-table-column>
-          <el-table-column v-if="isLogged" prop="date" label="Opcije" :width="70" align="center">
-            <template #default="data">
-              <el-row>
-                <el-col :span="8">
-                  <el-tooltip
-                    v-if="!data.row.done"
-                    content="Označi kao razduženo"
-                    placement="top-start"
-                  >
-                    <el-icon class="hover-patch" :size="20" @click="openSetDeleteDialog(data.row, 'set')">
-                      <SuccessFilled />
-                    </el-icon>
-                  </el-tooltip>
-                  <div v-else />
-                </el-col>
-                <el-col :span="8" :offset="8">
-                  <el-tooltip
-                    content="Obriši dugovanje"
-                    placement="top-start"
-                  >
-                    <el-icon class="hover-delete" :size="20" @click="openSetDeleteDialog(data.row, 'delete')">
-                      <DeleteFilled />
-                    </el-icon>
-                  </el-tooltip>
-                </el-col>
-              </el-row>
-            </template>
-          </el-table-column>
-        </el-table>
+          <ElOption
+            v-for="perPage in perPageSizes"
+            :value="perPage.value"
+            :label="perPage.label"
+          />
+        </ElSelect>
+        <ElPagination
+          v-model:current-page="pagination.page"
+          :background="true"
+          layout="prev, pager, next"
+          :total="store?.debts?.total"
+          @current-change="handlePageChange"
+        />
       </div>
     </div>
-    <Login v-else />
-    <el-row class="mt-3" justify="center" align="middle">
-      <el-col v-if="!isLogged" @click="showDashboard = !showDashboard" class="link">
-        {{ `Go to ${showDashboard ? 'login' : 'dashboard'}` }}
-      </el-col>
-    </el-row>
+  </Layout>
 
-    <el-dialog
-      v-model="createDialogOpened"
-      title="Novo dugovanje"
-      :before-close="handleClose"
-    >
-      <el-row><span>Dužnik</span></el-row>
-      <el-row>
-        <el-input v-model="name" placeholder="Dužnik" @keyup.enter="createDebt" />
-      </el-row>
-      <el-row class="mt-1"><span>Opis dugovanja</span></el-row>
-      <el-row>
-        <el-input v-model="description" placeholder="Opis dugovanja" @keyup.enter="createDebt" />
-      </el-row>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button plain @click="handleClose">Odustani</el-button>
-          <el-button
-            class="btn-margin-fix"
-            type="primary"
-            plain
-            @click="createDebt"
-            :disabled="btnDisabled"
-            >Stori dugovanje
-          </el-button>
-        </span>
-      </template>
-    </el-dialog>
+  <ElDialog
+    v-model="createDialogOpened"
+    title="Novo dugovanje"
+    fullscreen
+    :before-close="handleClose"
+  >
+    <ElRow>Dužnik</ElRow>
+    <ElRow>
+      <ElInput v-model="name" placeholder="Dužnik" @keyup.enter="createDebt" />
+    </ElRow>
+    <ElRow class="mt-1"><span>Opis dugovanja</span></ElRow>
+    <ElRow>
+      <ElInput
+        v-model="description"
+        placeholder="Opis dugovanja"
+        @keyup.enter="createDebt"
+        type="textarea"
+        :autosize="{ minRows: 2 }"
+      />
+    </ElRow>
+    <template #footer>
+      <span class="dialog-footer">
+        <ElButton plain @click="handleClose">Odustani</ElButton>
+        <ElButton
+          class="btn-margin-fix"
+          type="primary"
+          plain
+          @click="createDebt"
+          :disabled="btnDisabled"
+          >Novo dugovanje
+        </ElButton>
+      </span>
+    </template>
+  </ElDialog>
 
-    <el-dialog
-      v-model="setOrDeleteDialogOpened"
-      :title="deleteOrSet === 'set' ? 'Označi kao razduženo' : 'Obriši dugovanje'"
-      :before-close="handleClose"
-    >
-      <el-row>Dužnik: {{ selectedDebt.name }}</el-row>
-      <el-row>Opis: {{ selectedDebt.description }}</el-row>
-      <el-row>Datum: {{ selectedDebt.date }}</el-row>
-      <el-row>
-        <span :class="{ 'color-green': selectedDebt.done, 'color-red': !selectedDebt.done }">
-          Stanje: {{ selectedDebt.done ? 'Razduženo' : 'Nije razduženo' }}
-        </span>
-      </el-row>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button plain @click="handleClose">Odustani</el-button>
-          <el-button
-            v-if="deleteOrSet === 'set'"
-            class="btn-margin-fix"
-            type="primary"
-            plain
-            @click="patchDebt"
-            >Razduži
-          </el-button>
-          <el-button
-            v-else
-            class="btn-margin-fix"
-            type="danger"
-            plain
-            @click="deleteDebt"
-            >Obriši
-          </el-button>
-        </span>
-      </template>
-    </el-dialog>
+  <ElDialog
+    v-model="setOrDeleteDialogOpened"
+    :title="deleteOrSet === 'set' ? 'Označi kao razduženo' : 'Obriši dugovanje'"
+    fullscreen
+    :before-close="handleClose"
+  >
+    <ElRow>Dužnik: {{ selectedDebt.name }}</ElRow>
+    <ElRow>Opis: {{ selectedDebt.description }}</ElRow>
+    <ElRow>Datum: {{ selectedDebt.date }}</ElRow>
+    <ElRow>
+      <span
+        :class="{
+          'color-green': selectedDebt.done,
+          'color-red': !selectedDebt.done,
+        }"
+      >
+        Stanje: {{ selectedDebt.done ? 'Razduženo' : 'Nije razduženo' }}
+      </span>
+    </ElRow>
+    <template #footer>
+      <span class="dialog-footer">
+        <ElButton plain @click="handleClose">Odustani</ElButton>
+        <ElButton
+          v-if="deleteOrSet === 'set'"
+          class="btn-margin-fix"
+          type="primary"
+          plain
+          @click="patchDebt"
+          >Razduži
+        </ElButton>
+        <ElButton
+          v-else
+          class="btn-margin-fix"
+          type="danger"
+          plain
+          @click="deleteDebt"
+          >Obriši
+        </ElButton>
+      </span>
+    </template>
+  </ElDialog>
 </template>
 
 <style scoped>
-.image {
-  width: 800px;
+.loading-container {
+  height: 90vh;
+}
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  margin: auto;
+  width: 90%;
+  padding-bottom: 60px;
 }
 .btn-margin-fix {
   margin-top: 20px;
   margin-bottom: 15px;
 }
-.hover-patch:hover {
-  color: green;
-  cursor: pointer;
-}
-.hover-delete:hover {
-  color: red;
-  cursor: pointer;
+.pagination-container {
+  display: flex;
+  align-content: center;
+  align-items: center;
+  justify-items: center;
+  justify-content: center;
+  gap: 8px;
+  row-gap: 22px;
+  flex-wrap: wrap;
+  margin: 22px auto 0 auto;
 }
 .color-green {
   color: green;
 }
-
 .color-red {
   color: red;
 }
-
-.link:hover {
-  color: #ffffff;
-  cursor: pointer;
-  text-decoration: underline;
+.margin-right-8 {
+  margin-right: 8px;
 }
 </style>

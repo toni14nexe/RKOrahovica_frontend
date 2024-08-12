@@ -147,11 +147,11 @@ button.btn-prev:disabled {
 }
 
 .el-select__placeholder {
-  --el-text-color-regular: white !important;
+  --el-text-color-regular: var(--el-color-primary) !important;
 }
 
 .el-select__caret {
-  --el-select-input-color: white !important;
+  --el-select-input-color: var(--el-color-primary) !important;
 }
 
 .el-input__wrapper {

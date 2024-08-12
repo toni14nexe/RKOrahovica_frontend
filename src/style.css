@@ -141,12 +141,21 @@ button.btn-prev:disabled {
   --el-select-border-color-hover: var(--el-color-primary) !important;
 }
 
-.el-input__wrapper {
-  background-color: rgba(0, 0, 0, 0) !important;
+.el-select__wrapper {
+  --el-fill-color-blank: rgba(0, 0, 0, 0) !important;
+  --el-border-color: var(--el-color-primary);
 }
 
-.el-input__wrapper:hover {
-  background-color: white !important;
+.el-select__placeholder {
+  --el-text-color-regular: white !important;
+}
+
+.el-select__caret {
+  --el-select-input-color: white !important;
+}
+
+.el-input__wrapper {
+  background-color: rgba(0, 0, 0, 0) !important;
 }
 
 .el-input {
@@ -161,4 +170,19 @@ button.btn-prev:disabled {
   i {
     color: var(--el-color-primary) !important;
   }
+}
+
+/* Textarea */
+
+textarea {
+  color: var(--el-color-primary) !important;
+  background-color: rgba(0, 0, 0, 0) !important;
+}
+
+.el-textarea__inner {
+  box-shadow: 0 0 0 1px var(--el-color-primary) !important;
+}
+
+.el-textarea__inner:hover {
+  box-shadow: 0 0 0 1px var(--el-border-color-hover) !important;
 }

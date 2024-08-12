@@ -13,6 +13,7 @@ const deleteOrSet = ref();
 const name = ref('');
 const description = ref('');
 const selectedDebt = ref();
+const activeNames = ref([]);
 const pagination = ref({
   page: 1,
   perPage: 10,
@@ -38,8 +39,12 @@ function createDebt() {
       date: date,
       description: description.value,
     });
-
-    handleClose();
+    setTimeout(() => {
+      activeNames.value = [];
+      handleClose();
+      pagination.value.page = 1;
+      getDebts();
+    }, 500);
   }
 }
 
@@ -58,12 +63,21 @@ const btnDisabled = computed(() => {
 
 function patchDebt() {
   store.setDebtAsDone(selectedDebt.value._id);
-  handleClose();
+  setTimeout(() => {
+    activeNames.value = [];
+    handleClose();
+    getDebts();
+  }, 500);
 }
 
 function deleteDebt() {
   store.deleteDebt(selectedDebt.value._id);
-  handleClose();
+  setTimeout(() => {
+    activeNames.value = [];
+    pagination.value.page = 1;
+    handleClose();
+    getDebts();
+  }, 500);
 }
 
 function openSetDeleteDialog(debt, option) {
@@ -74,11 +88,13 @@ function openSetDeleteDialog(debt, option) {
 }
 
 function handlePageChange(page) {
+  activeNames.value = [];
   pagination.value.page = page;
   getDebts();
 }
 
 function handlePerPageChange(perPage) {
+  activeNames.value = [];
   pagination.value = {
     page: 1,
     perPage: perPage,
@@ -110,7 +126,7 @@ function handlePerPageChange(perPage) {
         Dugovanje
       </ElButton>
 
-      <ElCollapse v-for="debt in store?.debts?.debts">
+      <ElCollapse v-for="debt in store?.debts?.debts" v-model="activeNames">
         <ElCollapseItem>
           <template #title>
             <p class="margin-right-8">{{ debt.name }}</p>
@@ -135,7 +151,7 @@ function handlePerPageChange(perPage) {
               Obriši
             </ElButton>
             <ElButton
-              v-if="isLogged"
+              v-if="isLogged && !debt.done"
               plain
               type="success"
               @click="openSetDeleteDialog(debt, 'set')"
@@ -153,7 +169,7 @@ function handlePerPageChange(perPage) {
         <ElSelect
           v-model="pagination.perPage"
           @change="handlePerPageChange"
-          style="width: 120px"
+          style="width: 130px"
         >
           <ElOption
             v-for="perPage in perPageSizes"

@@ -179,6 +179,7 @@ function handlePerPageChange(perPage) {
         </ElSelect>
         <ElPagination
           v-model:current-page="pagination.page"
+          v-model:page-size="pagination.perPage"
           :background="true"
           layout="prev, pager, next"
           :total="store?.debts?.total"

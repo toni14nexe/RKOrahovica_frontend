@@ -1,7 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useDebtStore } from '../stores/debts';
-import cookie from 'vue-cookies';
 import Layout from './Layout.vue';
 import { storeToRefs } from 'pinia';
 
@@ -23,11 +22,24 @@ const perPageSizes = [
   { value: 25, label: '25 rezultata' },
   { value: 50, label: '50 rezultata' },
 ];
+const sorting = ref({
+  sort: 'desc',
+  sortBy: 'relevant',
+  sortOption: 'Datum & Status',
+});
+const sortingOptions = ['Datum & Status', 'Naziv silazno', 'Naziv uzlazno'];
+const searchValue = ref('');
 
 onMounted(() => getDebts());
 
 function getDebts() {
-  store.getDebts(pagination.value.page, pagination.value.perPage);
+  store.getDebts(
+    pagination.value.page,
+    pagination.value.perPage,
+    sorting.value.sort,
+    sorting.value.sortBy,
+    searchValue.value
+  );
 }
 
 function createDebt() {
@@ -101,6 +113,37 @@ function handlePerPageChange(perPage) {
   };
   getDebts();
 }
+
+function handleSortChange(sort) {
+  pagination.value.page = 1;
+
+  if (sort === 'Naziv uzlazno') {
+    sorting.value.sort = 'desc';
+    sorting.value.sortBy = 'name';
+  } else if (sort === 'Naziv silazno') {
+    sorting.value.sort = 'asc';
+    sorting.value.sortBy = 'name';
+  } else {
+    sorting.value.sort = 'desc';
+    sorting.value.sortBy = 'relevant';
+  }
+  getDebts();
+}
+
+function debounce(func, timeout = 500) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      func.apply(this, args);
+    }, timeout);
+  };
+}
+
+const handleSearchInput = debounce(() => {
+  pagination.value.page = 1;
+  getDebts();
+});
 </script>
 
 <template>
@@ -116,7 +159,6 @@ function handlePerPageChange(perPage) {
     <div v-else class="dashboard-container">
       <ElButton
         v-if="isLogged"
-        class="btn-margin-fix"
         type="primary"
         plain
         @click="createDialogOpened = true"
@@ -125,6 +167,26 @@ function handlePerPageChange(perPage) {
         </ElIcon>
         Dugovanje
       </ElButton>
+
+      <div
+        class="sort-search-container"
+        :style="isLogged ? 'margin-top: 22px' : undefined"
+      >
+        <ElInput
+          v-model="searchValue"
+          class="search-sort-input"
+          placeholder="Pretraži..."
+          @input="handleSearchInput"
+        />
+        <ElSelect
+          v-model="sorting.sortOption"
+          class="search-sort-input"
+          @change="handleSortChange"
+        >
+          <ElOption v-for="sort in sortingOptions" :label="sort" :value="sort">
+          </ElOption>
+        </ElSelect>
+      </div>
 
       <ElCollapse v-for="debt in store?.debts?.debts" v-model="activeNames">
         <ElCollapseItem>
@@ -165,7 +227,10 @@ function handlePerPageChange(perPage) {
         </ElCollapseItem>
       </ElCollapse>
 
-      <div v-if="store?.debts?.total > 10" class="pagination-container">
+      <div
+        v-if="store?.debts?.total > pagination.perPage"
+        class="pagination-container"
+      >
         <ElSelect
           v-model="pagination.perPage"
           @change="handlePerPageChange"
@@ -211,9 +276,8 @@ function handlePerPageChange(perPage) {
     </ElRow>
     <template #footer>
       <span class="dialog-footer">
-        <ElButton plain @click="handleClose">Odustani</ElButton>
+        <ElButton plain type="danger" @click="handleClose">Odustani</ElButton>
         <ElButton
-          class="btn-margin-fix"
           type="primary"
           plain
           @click="createDebt"
@@ -245,21 +309,20 @@ function handlePerPageChange(perPage) {
     </ElRow>
     <template #footer>
       <span class="dialog-footer">
-        <ElButton plain @click="handleClose">Odustani</ElButton>
+        <ElButton
+          plain
+          :type="deleteOrSet === 'set' ? 'danger' : 'primary'"
+          @click="handleClose"
+          >Odustani</ElButton
+        >
         <ElButton
           v-if="deleteOrSet === 'set'"
-          class="btn-margin-fix"
           type="primary"
           plain
           @click="patchDebt"
           >Razduži
         </ElButton>
-        <ElButton
-          v-else
-          class="btn-margin-fix"
-          type="danger"
-          plain
-          @click="deleteDebt"
+        <ElButton v-else type="danger" plain @click="deleteDebt"
           >Obriši
         </ElButton>
       </span>
@@ -279,9 +342,17 @@ function handlePerPageChange(perPage) {
   width: 90%;
   padding-bottom: 60px;
 }
-.btn-margin-fix {
-  margin-top: 20px;
-  margin-bottom: 15px;
+.sort-search-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  row-gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 auto 22px auto;
+}
+.search-sort-input {
+  width: 150px;
 }
 .pagination-container {
   display: flex;
@@ -302,5 +373,12 @@ function handlePerPageChange(perPage) {
 }
 .margin-right-8 {
   margin-right: 8px;
+}
+.dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 </style>

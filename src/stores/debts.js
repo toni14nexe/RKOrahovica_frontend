@@ -12,9 +12,11 @@ export const useDebtStore = defineStore('debts', () => {
   const debtsLoading = ref(true);
   const isLogged = ref(false);
 
-  function getDebts(page, perPage) {
+  function getDebts(page, perPage, sort, sortBy, search) {
     axios
-      .get(`${apiLink}/debts?page=${page}&perPage=${perPage}`)
+      .get(
+        `${apiLink}/debts?page=${page}&perPage=${perPage}&sort=${sort}&sortBy=${sortBy}&search=${search}`
+      )
       .then((response) => {
         debts.value = response.data;
         debtsLoading.value = false;
